@@ -25,8 +25,8 @@ bash$> rake -T
 
 Two tasks should appear on the tasks list
 
-rake easyhaml:convert                                            # Converts HTML to HAML
-rake easyhaml:deletehaml                                         # Deletes HAML files within views folders
+bash$> rake easyhaml:convert                                            # Converts HTML to HAML
+bash$> rake easyhaml:deletehaml                                         # Deletes HAML files within views folders
 
 
 Functionality
