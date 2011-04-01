@@ -1,0 +1,57 @@
+EasyHAML
+==============
+
+03-30-2011 Version 0.0.0.1
+
+EasyHaml will be a series of scripts and automated tasks that will allow coders to transform their currents .erb files to .haml using the haml gem.
+
+At this moment, there is only one rake task (actually, two) that scan the view folder within a project looking for .html.erb files and converting them to .haml with the proper syntax using the html2haml utility. The second task delete all the .haml created to "rollback" to the initial state.
+
+
+Gem Requirements
+=================
+
+- haml
+- ruby_parser
+- hpricot
+
+
+Installation
+=================
+
+Just download the easyhaml.rake file and place it under your lib/tasks folder within your rails app. Verify it's working with the following command at your terminal prompt
+
+bash$> rake -T
+
+Two tasks should appear on the tasks list
+
+rake easyhaml:convert                                            # Converts HTML to HAML
+rake easyhaml:deletehaml                                         # Deletes HAML files within views folders
+
+
+Functionality
+=================
+
+To convert all the HTML files in the views folder to HAML format, enter the following rake task on the terminal window.
+
+rake easyhaml:convert
+
+
+To delete all the .HAML files in every view folder, , enter the following rake task on the terminal window.
+
+rake easyhaml:deletehaml
+
+
+What's Next
+=================
+
+There are a lot of configuration and pending things to implement like selecting a directory, overriding some files, moving .erb files to a different position. That will be done in the short term but if anyone comes with a good idea and wants to collaborate, feel free to fork it and send me a pull request.
+
+
+Stay Hungry, Stay Foolish!!!
+Leo Man
+
+
+
+
+
