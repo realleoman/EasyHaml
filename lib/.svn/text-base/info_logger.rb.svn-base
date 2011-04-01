@@ -1,0 +1,34 @@
+# Logs the information in the request environment variable
+class InfoLogger
+
+  def initialize(app, options = {})
+    @app = app
+    @show_env = options[:show_env]
+    @show_body = options[:show_body]
+  end
+
+  def call(env)
+    log_env(env)
+    status, header, response = @app.call(env)
+    [status, header, response]
+  end
+
+  def log_env(env)
+    if @show_env
+      log "===ENV VALUES===="
+      env.each do |k, v|
+        log "[#{k}]:#{v}"
+      end
+    end
+
+    if @show_body
+      log "=== BODY ===="
+      log env['rack.input'].read
+    end
+  end
+
+  def log(message)
+    RAILS_DEFAULT_LOGGER.info(message)
+  end
+
+end

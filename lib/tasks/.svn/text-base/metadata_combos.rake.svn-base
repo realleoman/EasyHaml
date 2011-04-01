@@ -1,0 +1,10 @@
+namespace :metadata_combos do
+    desc "Enables existing metadata combos"
+    task :set_enabled_metadata_combos => :environment do
+      @metadata_combos = MetadataCombo.find(:all)
+      @metadata_combos.each do |metadata_combo|
+        metadata_combo.is_enabled = 1
+        metadata_combo.save
+      end
+    end
+end

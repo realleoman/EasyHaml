@@ -1,0 +1,158 @@
+# Módulo de rack que se encarga de redirigir request hacia otro server, en base a una lista de paths
+# que se le proporcionen.
+# El objetivo es lograr que todos los request que manipulen archivos se envien a otro servidor.
+#
+# Para configurarlo, en environtment.rb se debe agregar:
+# config.middleware.insert_after "Rack::Lock", "RequestSeparator", :target_url => 'http://localhost:4000',
+#                        :url_filter_list => ['/admin', '/assets/get_document_file/', '/jobs', '/deliverables']
+#
+# donde:
+# :target_url es el url del servidor al cual se van a redirigir los requests.
+# :url_filter_list es la lista de paths que se van a redirigir, pueden ser string o regexps.
+#
+
+require 'net/http'
+require 'uri'
+require 'net/http/post/multipart'
+
+module Net
+  class HTTP
+    def HTTP.get_with_headers(uri, headers=nil)
+      uri = URI.parse(uri) if uri.respond_to? :to_str
+      start(uri.host, uri.port) do |http|
+        return http.get(uri.path + (uri.query.blank? ? '' : '?' + uri.query), headers)
+      end
+    end
+
+    def HTTP.post_with_headers(uri, headers = nil, data = nil)
+          uri = URI.parse(uri) if uri.respond_to? :to_str
+          start(uri.host, uri.port) do |http|
+            return http.post(uri.path, data, headers)
+          end
+    end
+
+  end
+end
+
+module UploadIO
+  # This method overrides original definition in module uploadio
+  # real_name var contains original name of file in filesystem
+  def self.new(filename_or_io, content_type, filename = nil)
+    io = filename_or_io
+    real_file = filename
+    unless io.respond_to? :read
+      io = File.open(filename_or_io)
+      filename = filename_or_io
+    end
+    convert!(io, content_type, File.basename(real_file), filename)
+    io
+  end
+
+end
+
+
+class RequestSeparator
+
+  def initialize(app, options = {})
+    @app = app
+    @target_url = options[:target_url]
+    @url_filter_list = options[:url_filter_list] || []
+    @url_filter_list.map! {|url| Regexp.new(url) }
+  end
+
+  def call(env)
+    if  @url_filter_list.any? {|url| env['PATH_INFO'] =~ url}
+      #status, header, response = @app.call(env)
+      log "===Pasa por RequestSeparator===="
+      remote_call(env)
+    else
+      @app.call(env)
+    end
+
+  end
+
+  # Performs an http request, fiven the parameters given in the environment
+  def remote_call(env)
+    req = Rack::Request.new env
+
+    if req.post? || req.put?
+      # the request is a post
+
+      # we need to detect a file
+      # FIXME: We need to improve this "detect a file"
+      post_files = {}
+      form_hash  = {}
+      params     = {}
+      req.params.each{|key, value|
+        if (value.class == Hash) and (value.has_key?(:tempfile))   # This is for a file "outside" of the form
+          post_files['basename'] = value[:tempfile].path.gsub("\\","/")     # se cambia el path debido a problemas con los paths en windows. (tiene que ver con el convert! en UploadIO)
+          post_files['content_type'] = value[:type]
+          post_files['name'] = value[:name]
+          post_files['filename'] = value[:filename]
+        end
+        if (value.class == Hash) and (value.has_key?(:tempfile) == false)  # This is for a file "inside" of the form
+           value.each{|key1, value1|
+                if (value1.class == Hash) and (value1.has_key?(:tempfile))
+                   post_files['basename'] = value1[:tempfile].path.gsub("\\","/")
+                   post_files['content_type'] = value1[:type]
+                   post_files['name'] = value1[:name]
+                   post_files['filename'] = value1[:filename]
+                 end
+                 if (value1.class != Hash)
+                   str = key.to_s + '[' + key1.to_s + ']'
+                   form_hash[str] = value1
+                 end
+           }
+        end
+        if (value.class != Hash)
+          params[key] = value.to_s
+        end
+      }
+
+      params = params.merge(form_hash)
+
+      # with file
+      http_request = Net::HTTP::Post::Multipart.new env['PATH_INFO'], (params).merge({ post_files['name'] => UploadIO.new(post_files['basename'], post_files['content_type'].to_s, post_files['filename'].to_s) }) if post_files['name']
+      # no file
+      http_request = Net::HTTP::Post::Multipart.new env['PATH_INFO'], params unless post_files['name']
+
+      # FIXME: We need to find a better way to merge http_request with this values of env, this values are the headers of the request
+      http_request['Host'] = env['HTTP_HOST']
+      http_request['User-Agent'] = env['HTTP_USER_AGENT']
+      http_request['Accept-Language'] = env['HTTP_ACCEPT_LANGUAGE']
+      http_request['Accept-Encoding'] = env['HTTP_ACCEPT_ENCODING']
+      http_request['Connection'] = env['HTTP_CONNECTION']
+      http_request['Cookie'] = env['HTTP_COOKIE']
+
+      http_response = Net::HTTP.start(URI.parse(@target_url).host, URI.parse(@target_url).port) do |http|
+               http.request(http_request)
+      end
+
+      # We must change http response path, using the 'local' ip address
+      if http_response.header['location']
+        url = URI.parse(http_response.header['location'])
+        new_url = env['HTTP_ORIGIN'] + url.path
+        http_response.header['location'] = new_url
+      end
+
+      [http_response.code, http_response.header, http_response.body]
+
+    else
+      # FIXME this code should be refa ctored, to something less verbose
+      request_header = { 'Host' => env['HTTP_HOST'], 'User-Agent' => env['HTTP_USER_AGENT'], 'Accept' => env['HTTP_ACCEPT'],
+                         'Accept-Language' => env['HTTP_ACCEPT_LANGUAGE'], 'Accept-Encoding' => env['HTTP_ACCEPT_ENCODING'],
+                         'Connection' => env['HTTP_CONNECTION'], 'Cookie' => env['HTTP_COOKIE'] }
+      #
+      #log "REQUEST HEADER: #{request_header.to_yaml}"
+      new_url = @target_url + req.path_info + (req.query_string.blank? ? '' : '?' + req.query_string )
+      log "Perform HTTP GET on #{new_url}"
+      http_response = Net::HTTP.get_with_headers( new_url, request_header)
+      [http_response.code, http_response.header, http_response.body]
+    end
+  end
+
+  def log(message)
+    RAILS_DEFAULT_LOGGER.info(message)
+  end
+
+end

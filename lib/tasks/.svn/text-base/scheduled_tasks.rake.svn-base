@@ -1,0 +1,31 @@
+namespace :scheduled_tasks do
+  
+  
+      desc "Send mail to all users with their active tasks"
+      task :active_tasks_mailer => :environment do
+        @task_instances = TaskInstance.find(:all, :conditions => ['is_current = ?', true])
+        if !@task_instances.blank? then
+          users = []
+          #Finds users with active tasks
+          @task_instances.each do |task_instance|
+            if !task_instance.assigned_id.nil?
+              user = User.find(task_instance.assigned_id)
+              users << user if !user.blank?
+            else #if receiver nil, receivers are all users with this role and in this team              
+              users_in_role =  TeamAssignment.find(:all, :conditions => ['team_id IN (?) AND dalai_role_id = ?', task_instance.job.teams.map(&:id).uniq, task_instance.dalai_role_id], :select => 'user_id').map(&:user)
+              users |=  users_in_role if !users_in_role.blank?
+            end 
+          end
+          
+          #deletes all repeated users
+          users = users.uniq
+          
+          #for each user, finds his active tasks from the active tasks array and sends the corresponding mail
+          users.each do |user|
+          @user_tasks = @task_instances.select{|task| user.owns_task?(task)}
+              SendMail.new.deliver_several_task_instances(user, @user_tasks, 'active')
+          end
+        end # form !@task_instances.blank?
+    end
+
+end

@@ -1,0 +1,83 @@
+K 25
+svn:wc:ra_dav:version-url
+V 42
+/svn/Magallanes/!svn/ver/2/trunk/lib/tasks
+END
+metadata_combos.rake
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/Magallanes/!svn/ver/2/trunk/lib/tasks/metadata_combos.rake
+END
+library_types.rake
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/Magallanes/!svn/ver/2/trunk/lib/tasks/library_types.rake
+END
+schema.rake
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/Magallanes/!svn/ver/41/trunk/lib/tasks/schema.rake
+END
+metadata_definitions.rake
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/Magallanes/!svn/ver/2/trunk/lib/tasks/metadata_definitions.rake
+END
+markup_stati.rake
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/Magallanes/!svn/ver/2/trunk/lib/tasks/markup_stati.rake
+END
+person_users.rake
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/Magallanes/!svn/ver/2/trunk/lib/tasks/person_users.rake
+END
+roles.rake
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/Magallanes/!svn/ver/2/trunk/lib/tasks/roles.rake
+END
+fixture_extractor_tasks.rake
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/Magallanes/!svn/ver/2/trunk/lib/tasks/fixture_extractor_tasks.rake
+END
+rspec.rake
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/Magallanes/!svn/ver/2/trunk/lib/tasks/rspec.rake
+END
+scheduled_tasks.rake
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/Magallanes/!svn/ver/2/trunk/lib/tasks/scheduled_tasks.rake
+END
+set_enabled_and_protected.rake
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/Magallanes/!svn/ver/2/trunk/lib/tasks/set_enabled_and_protected.rake
+END
+populate.rake
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/Magallanes/!svn/ver/2/trunk/lib/tasks/populate.rake
+END
+asset_files.rake
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/Magallanes/!svn/ver/2/trunk/lib/tasks/asset_files.rake
+END

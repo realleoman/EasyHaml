@@ -1,0 +1,36 @@
+namespace :library_types do
+    desc "Enables existing library types"
+    task :set_enabled_library_types => :environment do
+      @library_type = LibraryType.find(:first, :conditions => ["name = ?", "[Mechanical Drawings]"])
+      if !@library_type.nil? then
+        @library_type.is_enabled = 1
+        @library_type.save
+      else
+        LibraryType.create :name => "[Mechanical Drawings]", :is_enabled => true, :is_protected => 1
+      end
+      @library_type = LibraryType.find(:first, :conditions => ["name = ?", "[Nutritional Tables]"])
+      if !@library_type.nil? then
+        @library_type.is_enabled = 1
+        @library_type.save
+      else
+        LibraryType.create :name => "[Nutritional Tables]", :is_enabled => true, :is_protected => 1
+      end
+    end
+    desc "Protects existing library types"
+    task :set_protected_library_types => :environment do
+      @library_type = LibraryType.find(:first, :conditions => ["name = ?", "[Mechanical Drawings]"])
+      if !@library_type.nil? then
+        @library_type.is_protected = 1
+        @library_type.save
+      else
+        LibraryType.create :name => "[Mechanical Drawings]", :is_enabled => true, :is_protected => 1
+      end
+      @library_type = LibraryType.find(:first, :conditions => ["name = ?", "[Nutritional Tables]"])
+      if !@library_type.nil? then
+        @library_type.is_protected = 1
+        @library_type.save
+      else
+        LibraryType.create :name => "[Nutritional Tables]", :is_enabled => true, :is_protected => 1
+      end
+    end
+end
